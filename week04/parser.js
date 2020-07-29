@@ -1,8 +1,20 @@
+const css = require('css');
+
+const EOF = Symbol("EOF");
+
 let currentToken = null;
 let currentAttribute = null;
 let currentTextNode = null;
 
 let stack = [{type: "document", children:[]}];
+
+// 加入一个新的函数，addCSSRules，这里我们把CSS规则暂存到一个数组里
+let rules = [];
+function addCSSRules(text) {
+  var ast = css.parse(text);
+  console.log(JSON.stringify(ast, null, "    "));
+  rules.push(...ast.stylesheet.rules);
+}
 
 function emit(token) {
   let top = stack[stack.length - 1];
@@ -35,6 +47,10 @@ function emit(token) {
     if (top.tagName != token.tagName) {
       throw new Error("Tag start end doesn't match!");
     } else {
+      // 遇到style标签时，执行添加CSS规则的操作
+      // if (top.tagName === "style") {
+      //   addCSSRules(top.children[0].content);
+      // }
       stack.pop();
     }
     currentTextNode = null;
@@ -49,8 +65,6 @@ function emit(token) {
     currentTextNode.content += token.content;
   }
 }
-
-const EOF = Symbol("EOF"); // End Of File
 
 function data(c) {
   if (c == "<") {
@@ -108,6 +122,7 @@ function tagName(c) {
     currentToken.tagName += c;
     return tagName;
   } else if (c == ">") {
+    emit(currentToken);
     return data;
   } else {
     return tagName;
@@ -115,7 +130,7 @@ function tagName(c) {
 }
 
 function beforeAttributeName(c) {
-  if (C.match(/^[\t\n\f ]s/)) {
+  if (c.match(/^[\t\n\f ]$/)) {
     return beforeAttributeName;
   } else if (c == "/" || c == ">" || c == EOF) {
     return afterAttributeName(c);
@@ -206,7 +221,7 @@ function UnquotedAttributeValue(c) {
 
   } else {
     currentAttribute.value += c;
-    return doubleQuotedAttributeValue
+    return UnquotedAttributeValue
   }
 }
 
@@ -235,6 +250,29 @@ function selfClosingStartTag(c) {
 
   } else {
 
+  }
+}
+
+function afterAttributeName(c) {
+  if (c.match(/^[\t\n\f ]$/)) {
+    return afterAttributeName;
+  } else if (c == "/") {
+    return selfClosingStartTag;
+  } else if (c == "=") {
+    return beforeAttributeValue;
+  } else if (c == ">") {
+    currentToken[currentAttribute.name] = currentAttribute.value;
+    emit(currentToken);
+    return data;
+  } else if (c == EOF) {
+
+  } else {
+    currentToken[currentAttribute.name] = currentAttribute.value;
+    currentAttribute = {
+      name: "",
+      value: ""
+    }
+    return attributeName(c);
   }
 }
 

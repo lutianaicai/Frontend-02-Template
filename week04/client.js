@@ -1,4 +1,5 @@
 const net = require("net");
+const parser = require("./parser.js");
 
 class Request {
   constructor(options) {
@@ -34,7 +35,6 @@ class Request {
         })
       }
       connection.on('data', (data) => {
-        console.log(data.toString());
         parser.receive(data.toString());
         if (parser.isFinished) {
           resolve(parser.response);
@@ -78,7 +78,7 @@ class ResponseParser {
     return this.bodyParser && this.bodyParser.isFinished;
   }
   get response() {
-    this.statusLine.match(/HTTP\/1.1 [0-9]+) ([\s\S]+)/);
+    this.statusLine.match(/HTTP\/1.1 ([0-9]+) ([\s\S]+)/);
     return {
       statusCode: RegExp.$1,
       statusText: RegExp.$2,
@@ -177,9 +177,9 @@ class TrunkedBodyParser {
       if (char === '\r') {
         this.current = this.WAITING_NEW_LINE_END;
       }
-    } else if (this.current === this.WAITING_NEW_LINE) {
+    } else if (this.current === this.WAITING_NEW_LINE_END) {
       if (char === '\n') {
-        this.current = this.WAITING_LENGTH_LINE_END;
+        this.current = this.WAITING_LENGTH;
       }
     }
   }
@@ -203,5 +203,6 @@ void async function () {
 
   let dom = parser.parseHTML(response.body);
 
-  console.log(response);
+  console.log(dom);
+
 }();
