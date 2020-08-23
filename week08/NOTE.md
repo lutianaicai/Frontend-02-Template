@@ -22,7 +22,24 @@
 
 ### DOM 树
 
-![Node](media/15981397095020/Node.png)
+* Node
+	* Element: 元素型节点，跟标签相对应
+		* HTMLElement
+			* HTMLAnchorElement
+			* HTMLAppleElement
+			* HTMLAreaELEment
+			* HTMLAudioElement
+			* HTMLBaseElement
+			* HTMLBodyElement
+		* SVGElement 
+	* Document: 文档根节点
+	* CharacterData: 字符数据
+		* Text: 文本节点
+			* CDATASection: CDATA节点
+		* Comment: 注释
+		* ProcessingInstruction: 处理信息
+	* DocumentFragment: 文档片段
+	* DocumentType: 文档类型
 
 Element 跟 Node 不要混淆
 
@@ -227,5 +244,7 @@ function reverseChildren(element) {
 * W3C
 	* webaudio
 	* CG/WG   
+
+
 
 
